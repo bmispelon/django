@@ -82,10 +82,11 @@ class UserCreationForm(forms.ModelForm):
     def clean_username(self):
         # Since User.username is unique, this check is redundant,
         # but it sets a nicer error message than the ORM. See #13147.
+        UserModel = self._meta.model
         username = self.cleaned_data["username"]
         try:
-            User.objects.get(username=username)
-        except User.DoesNotExist:
+            UserModel.objects.get(username=username)
+        except UserModel.DoesNotExist:
             return username
         raise forms.ValidationError(self.error_messages['duplicate_username'])
 
