@@ -219,6 +219,15 @@ GeoDjango
 * Support for PostGIS 2.0 has been added and support for GDAL < 1.5 has been
   dropped.
 
+New class-based views in ``contrib.auth``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The views in :mod:`contrib.auth <django.contrib.auth.views>` have new class
+based versions. The old views are retained for backwards compatibility. The new
+class based versions are equivalent to the old views and will largely accept
+the same arguments. There are some changes to parameter names, such as
+``form_class`` being used instead of ``authentication_form``.
+
 Minor features
 ~~~~~~~~~~~~~~
 
