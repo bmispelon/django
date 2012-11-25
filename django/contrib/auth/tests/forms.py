@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import (UserCreationForm, AuthenticationForm,
     PasswordChangeForm, SetPasswordForm, UserChangeForm, PasswordResetForm)
 from django.contrib.auth.tests.utils import skipIfCustomUser
+from django.contrib.auth.tests.custom_user import ExtensionUser
 from django.core import mail
 from django.forms.fields import Field, EmailField
 from django.test import TestCase
@@ -362,3 +363,18 @@ class PasswordResetFormTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertEqual(form["email"].errors,
                          [_("The user account associated with this email address cannot reset the password.")])
+
+
+@override_settings(AUTH_USER_MODEL='auth.ExtensionUser')
+class CustomUserCreationFormTest(TestCase):
+    def test_form_validates(self):
+        class CustomUserCreationForm(UserCreationForm):
+            class Meta(UserCreationForm.Meta):
+                model = ExtensionUser
+        data = {
+            'username': 'jsmith',
+            'password1': 'test123',
+            'password2': 'test123',
+            }
+        form = CustomUserCreationForm(data)
+        self.assertTrue(form.is_valid())
