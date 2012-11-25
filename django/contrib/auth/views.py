@@ -152,7 +152,9 @@ class LogoutView(CurrentAppMixin, CurrentSiteMixin, generic.TemplateView):
 
 class LogoutThenLoginView(LogoutView):
     """Log out the user if he is logged in. Then redirects to the log-in page."""
-    success_url = resolve_url(settings.LOGIN_URL)
+    @property # Because resolve_url can't be called at compile-time.
+    def success_url(self):
+        return resolve_url(settings.LOGIN_URL)
 
 
 class PasswordResetView(CurrentAppMixin, generic.FormView):
