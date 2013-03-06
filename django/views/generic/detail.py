@@ -61,9 +61,8 @@ class SingleObjectMixin(ContextMixin):
         `get_object` is overridden.
         """
         if self.queryset is None:
-            model = self.get_model()
-            if model:
-                return model._default_manager.all()
+            if self.model: # Can't use self.get_model() here because it causes infinite recursion
+                return self.model._default_manager.all()
             else:
                 raise ImproperlyConfigured("%(cls)s is missing a queryset. Define "
                                            "%(cls)s.model, %(cls)s.queryset, or override "
@@ -71,6 +70,9 @@ class SingleObjectMixin(ContextMixin):
                                                 'cls': self.__class__.__name__
                                         })
         return self.queryset._clone()
+
+    def get_model(self):
+        return self.model
 
     def get_slug_field(self):
         """
@@ -99,9 +101,6 @@ class SingleObjectMixin(ContextMixin):
             context[context_object_name] = self.object
         context.update(kwargs)
         return super(SingleObjectMixin, self).get_context_data(**context)
-
-    def get_model(self):
-        return self.model
 
 
 class BaseDetailView(SingleObjectMixin, View):

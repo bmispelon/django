@@ -87,6 +87,19 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
             model = self.get_model()
             return model_forms.modelform_factory(model)
 
+    def get_model(self):
+        model = super(ModelFormMixin, self).get_model()
+        if model is not None:
+            # If a model has been explicitly provided, use it
+            return model
+        if getattr(self, 'object', None) is not None:
+            # If this view is operating on a single object, use
+            # the class of that object
+            return self.object.__class__
+        # Try to get a queryset and extract the model class
+        # from that
+        return self.get_queryset().model
+
     def get_form_kwargs(self):
         """
         Returns the keyword arguments for instantiating the form.
@@ -130,16 +143,6 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
                 context[context_object_name] = self.object
         context.update(kwargs)
         return super(ModelFormMixin, self).get_context_data(**context)
-        
-    def get_model(self):
-        if self.model:
-            return self.model
-        elif self.form_class and issubclass(self.form_class, model_forms.ModelForm):
-            return self.form_class._meta.model
-        elif hasattr(self, 'object') and self.object is not None:
-            return self.object.__class__
-        else:
-            return self.get_queryset().model
 
 
 class ProcessFormView(View):
