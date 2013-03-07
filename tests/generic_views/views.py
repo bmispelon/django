@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import generic
 
-from .forms import AuthorForm, ContactForm
+from .forms import AuthorForm, ContactForm, ArtistForm
 from .models import Artist, Author, Book, Page, BookSigning
 
 
@@ -84,6 +84,9 @@ class ContactView(generic.FormView):
 
 class ArtistCreate(generic.CreateView):
     model = Artist
+
+class ArtistOnlyFormClassCreate(generic.CreateView):
+    form_class = ArtistForm
 
 
 class NaiveAuthorCreate(generic.CreateView):

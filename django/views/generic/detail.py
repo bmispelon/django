@@ -61,7 +61,7 @@ class SingleObjectMixin(ContextMixin):
         `get_object` is overridden.
         """
         if self.queryset is None:
-            if self.model:
+            if self.model: # Can't use self.get_model() here because it causes infinite recursion
                 return self.model._default_manager.all()
             else:
                 raise ImproperlyConfigured("%(cls)s is missing a queryset. Define "
@@ -70,6 +70,9 @@ class SingleObjectMixin(ContextMixin):
                                                 'cls': self.__class__.__name__
                                         })
         return self.queryset._clone()
+
+    def get_model(self):
+        return self.model
 
     def get_slug_field(self):
         """
@@ -147,12 +150,14 @@ class SingleObjectTemplateResponseMixin(TemplateResponseMixin):
                 self.object._meta.model_name,
                 self.template_name_suffix
             ))
-        elif hasattr(self, 'model') and self.model is not None and issubclass(self.model, models.Model):
-            names.append("%s/%s%s.html" % (
-                self.model._meta.app_label,
-                self.model._meta.model_name,
-                self.template_name_suffix
-            ))
+        elif hasattr(self, 'get_model'):
+            model = self.get_model()
+            if model is not None and issubclass(model, models.Model):
+                names.append("%s/%s%s.html" % (
+                    model._meta.app_label,
+                    model._meta.model_name,
+                    self.template_name_suffix
+                ))
         return names
 
 
