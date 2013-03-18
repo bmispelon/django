@@ -18,6 +18,10 @@ class WizardTests(object):
     def setUp(self):
         self.testuser, created = User.objects.get_or_create(username='testuser1')
         self.wizard_step_data[0]['form1-user'] = self.testuser.pk
+        self.wizard_step_data[1]['form2-file1'] = open(upath(__file__), 'rb')
+
+    def tearDown(self):
+        self.wizard_step_data[1]['form2-file1'].close()
 
     def test_initial_call(self):
         response = self.client.get(self.wizard_url)
@@ -87,7 +91,6 @@ class WizardTests(object):
         self.assertEqual(response.context['wizard']['steps'].current, 'form2')
 
         post_data = self.wizard_step_data[1]
-        post_data['form2-file1'] = open(upath(__file__), 'rb')
         response = self.client.post(self.wizard_url, post_data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['wizard']['steps'].current, 'form3')
@@ -150,8 +153,6 @@ class WizardTests(object):
         self.assertEqual(response.status_code, 200)
 
         post_data = self.wizard_step_data[1]
-        post_data['form2-file1'].close()
-        post_data['form2-file1'] = open(upath(__file__), 'rb')
         response = self.client.post(self.wizard_url, post_data)
         self.assertEqual(response.status_code, 200)
 
@@ -178,8 +179,6 @@ class WizardTests(object):
         self.assertEqual(response.context['wizard']['steps'].current, 'form2')
 
         post_data = self.wizard_step_data[1]
-        post_data['form2-file1'].close()
-        post_data['form2-file1'] = open(upath(__file__), 'rb')
         response = self.client.post(self.wizard_url, post_data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['wizard']['steps'].current, 'form3')

@@ -17,6 +17,10 @@ class NamedWizardTests(object):
     def setUp(self):
         self.testuser, created = User.objects.get_or_create(username='testuser1')
         self.wizard_step_data[0]['form1-user'] = self.testuser.pk
+        self.wizard_step_data[1]['form2-file1'] = open(__file__, 'rb')
+
+    def tearDown(self):
+        self.wizard_step_data[1]['form2-file1'].close()
 
     def test_initial_call(self):
         response = self.client.get(reverse('%s_start' % self.wizard_urlname))
@@ -122,8 +126,6 @@ class NamedWizardTests(object):
         self.assertEqual(response.context['wizard']['steps'].current, 'form2')
 
         post_data = self.wizard_step_data[1]
-        post_data['form2-file1'].close()
-        post_data['form2-file1'] = open(__file__, 'rb')
         response = self.client.post(
             reverse(self.wizard_urlname,
                     kwargs={'step': response.context['wizard']['steps'].current}),
@@ -173,7 +175,6 @@ class NamedWizardTests(object):
         self.assertEqual(response.status_code, 200)
 
         post_data = self.wizard_step_data[1]
-        post_data['form2-file1'] = open(__file__, 'rb')
         response = self.client.post(
             reverse(self.wizard_urlname,
                     kwargs={'step': response.context['wizard']['steps'].current}),
@@ -231,8 +232,6 @@ class NamedWizardTests(object):
         self.assertEqual(response.status_code, 200)
 
         post_data = self.wizard_step_data[1]
-        post_data['form2-file1'].close()
-        post_data['form2-file1'] = open(__file__, 'rb')
         response = self.client.post(
             reverse(self.wizard_urlname,
                     kwargs={'step': response.context['wizard']['steps'].current}),
