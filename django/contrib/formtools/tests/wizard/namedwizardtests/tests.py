@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.core.urlresolvers import reverse
 from django.http import QueryDict
 from django.test import TestCase
+from django.utils._os import upath
 
 from django.contrib.auth.models import User
 
@@ -17,7 +18,7 @@ class NamedWizardTests(object):
     def setUp(self):
         self.testuser, created = User.objects.get_or_create(username='testuser1')
         self.wizard_step_data[0]['form1-user'] = self.testuser.pk
-        self.wizard_step_data[1]['form2-file1'] = open(__file__, 'rb')
+        self.wizard_step_data[1]['form2-file1'] = open(upath(__file__), 'rb')
 
     def tearDown(self):
         self.wizard_step_data[1]['form2-file1'].close()
@@ -152,7 +153,7 @@ class NamedWizardTests(object):
         self.assertEqual(response.status_code, 200)
 
         all_data = response.context['form_list']
-        with open(__file__, 'rb') as f:
+        with open(upath(__file__), 'rb') as f:
             self.assertEqual(all_data[1]['file1'].read(), f.read())
         all_data[1]['file1'].close()
         del all_data[1]['file1']
@@ -186,7 +187,7 @@ class NamedWizardTests(object):
         response = self.client.get(step2_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['wizard']['steps'].current, 'form2')
-        with open(__file__, 'rb') as f:
+        with open(upath(__file__), 'rb') as f:
             self.assertEqual(
                 response.context['wizard']['form'].files['form2-file1'].read(),
                 f.read())
@@ -206,7 +207,7 @@ class NamedWizardTests(object):
         self.assertEqual(response.status_code, 200)
 
         all_data = response.context['all_cleaned_data']
-        with open(__file__, 'rb') as f:
+        with open(upath(__file__), 'rb') as f:
             self.assertEqual(all_data['file1'].read(), f.read())
         all_data['file1'].close()
         del all_data['file1']
