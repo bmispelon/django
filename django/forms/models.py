@@ -577,7 +577,7 @@ class BaseModelFormSet(BaseFormSet):
                     # mark the data as seen
                     seen_data.add(data)
         if errors:
-            raise ValidationError(errors)
+            raise ValidationError({NON_FIELD_ERRORS: errors})
 
     def get_unique_error_message(self, unique_check):
         if len(unique_check) == 1:

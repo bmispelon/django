@@ -213,7 +213,7 @@ class Field(object):
                 else:
                     errors.extend(e.messages)
         if errors:
-            raise exceptions.ValidationError(errors)
+            raise exceptions.ValidationError({self.name: errors})
 
     def validate(self, value, model_instance):
         """

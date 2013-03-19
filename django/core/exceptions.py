@@ -2,6 +2,9 @@
 Global Django exception and warning classes.
 """
 from functools import reduce
+import operator
+
+from django.utils.encoding import force_text
 
 
 class DjangoRuntimeWarning(RuntimeWarning):
@@ -54,8 +57,6 @@ NON_FIELD_ERRORS = '__all__'
 class ValidationError(Exception):
     """An error while validating data."""
     def __init__(self, message, code=None, params=None):
-        import operator
-        from django.utils.encoding import force_text
         """
         ValidationError can be passed any object that can be printed (usually
         a string), a list of objects or a dictionary.
@@ -78,22 +79,12 @@ class ValidationError(Exception):
         # instance would result in this:
         # AttributeError: ValidationError instance has no attribute 'args'
         # See http://www.python.org/doc/current/tut/node10.html#handling
-        if hasattr(self, 'message_dict'):
-            return repr(self.message_dict)
-        return repr(self.messages)
+        return repr(getattr(self, 'message_dict', self.messages))
 
     def __repr__(self):
-        if hasattr(self, 'message_dict'):
-            return 'ValidationError(%s)' % repr(self.message_dict)
-        return 'ValidationError(%s)' % repr(self.messages)
+        return 'ValidationError(%s)' % self
 
     def update_error_dict(self, error_dict):
-        if hasattr(self, 'message_dict'):
-            if error_dict:
-                for k, v in self.message_dict.items():
-                    error_dict.setdefault(k, []).extend(v)
-            else:
-                error_dict = self.message_dict
-        else:
-            error_dict[NON_FIELD_ERRORS] = self.messages
+        for k, v in getattr(self, 'message_dict', {NON_FIELD_ERRORS: self.messages}):
+            error_dict.setdefault(k, []).extend(v)
         return error_dict
