@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 
+from functools import wraps
 import re
 import string
 try:
@@ -12,7 +13,7 @@ except ImportError:     # Python 2
 
 from django.utils.safestring import SafeData, mark_safe
 from django.utils.encoding import force_bytes, force_text
-from django.utils.functional import allow_lazy, curry, lazy, Promise
+from django.utils.functional import allow_lazy
 from django.utils import six
 from django.utils.text import normalize_newlines
 
@@ -36,21 +37,19 @@ trailing_empty_content_re = re.compile(r'(?:<p>(?:&nbsp;|\s|<br \/>)*?</p>\s*)+\
 strip_tags_re = re.compile(r'</?\S([^=>]*=(\s*"[^"]*"|\s*\'[^\']*\'|\S*)|[^>])*?>', re.IGNORECASE)
 
 
+def _mark_safe_dec(fn):
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        return mark_safe(fn(*args, **kwargs))
+    return wrapped
+
+
 def escape(text):
     """
     Returns the given text with ampersands, quotes and angle brackets encoded for use in HTML.
     """
-    esc = lambda s: (force_text(s).replace('&', '&amp;')
-                                  .replace('<', '&lt;')
-                                  .replace('>', '&gt;')
-                                  .replace('"', '&quot;')
-                                  .replace("'", '&#39;')
-    )
-    if isinstance(text, (six.text_type, Promise)):
-        escaped = lazy(curry(esc, text), six.text_type)()
-    else:
-        escaped = esc(force_text(text))
-    return mark_safe(escaped)
+    return force_text(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
+escape = _mark_safe_dec(allow_lazy(escape, six.text_type))
 
 _js_escapes = {
     ord('\\'): '\\u005C',
