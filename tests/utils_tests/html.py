@@ -5,6 +5,9 @@ import os
 
 from django.utils import html
 from django.utils._os import upath
+from django.utils.safestring import mark_safe
+from django.utils import six
+from django.utils.translation import ugettext_lazy
 from django.utils.unittest import TestCase
 
 
@@ -37,6 +40,27 @@ class TestUtilsHtml(TestCase):
             self.check_output(f, value * 2, output * 2)
         # Verify it doesn't double replace &.
         self.check_output(f, '<&', '&lt;&amp;')
+
+    def test_conditional_escape(self):
+        f = html.conditional_escape
+        ff = lambda x: f(f(x))  # applied twice
+
+        # safe data comes out unchanged
+        self.check_output(f, 'safe')
+        # unsafe data is escaped
+        self.check_output(f, '<unsafe>', '&lt;unsafe&gt;')
+        # applying twice only escapes once
+        self.check_output(ff, '<unsafe>', '&lt;unsafe&gt;')
+
+        # works on lazy strings too
+        self.check_output(lambda x: six.text_type(f(x)),
+            ugettext_lazy('<unsafe>'), '&lt;unsafe&gt;')
+        # lazy strings don't get escaped twice (see #20221)
+        self.check_output(lambda x: six.text_type(ff(x)),
+            ugettext_lazy('<unsafe>'), '&lt;unsafe&gt;')
+
+        # strings that have been marked safe are not escaped
+        self.check_output(f, mark_safe('<unsafe>'), '<unsafe>')
 
     def test_format_html(self):
         self.assertEqual(

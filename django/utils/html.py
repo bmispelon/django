@@ -12,7 +12,7 @@ except ImportError:     # Python 2
 
 from django.utils.safestring import SafeData, mark_safe
 from django.utils.encoding import force_bytes, force_text
-from django.utils.functional import allow_lazy
+from django.utils.functional import allow_lazy, curry, lazy, Promise
 from django.utils import six
 from django.utils.text import normalize_newlines
 
@@ -40,8 +40,17 @@ def escape(text):
     """
     Returns the given text with ampersands, quotes and angle brackets encoded for use in HTML.
     """
-    return mark_safe(force_text(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;'))
-escape = allow_lazy(escape, six.text_type)
+    esc = lambda s: (force_text(s).replace('&', '&amp;')
+                                  .replace('<', '&lt;')
+                                  .replace('>', '&gt;')
+                                  .replace('"', '&quot;')
+                                  .replace("'", '&#39;')
+    )
+    if isinstance(text, (six.text_type, Promise)):
+        escaped = lazy(curry(esc, text), six.text_type)()
+    else:
+        escaped = esc(force_text(text))
+    return mark_safe(escaped)
 
 _js_escapes = {
     ord('\\'): '\\u005C',
