@@ -1,3 +1,4 @@
+from itertools import islice
 import re
 import warnings
 from xml.dom.minidom import parseString, Node
@@ -364,7 +365,9 @@ class CaptureQueriesContext(object):
 
     @property
     def captured_queries(self):
-        return self.connection.queries[self.initial_queries:self.final_queries]
+        # We need to use islice because connection.queries is a deque
+        start, stop = self.initial_queries, self.final_queries
+        return list(islice(self.connection.queries, start, stop))
 
     def __enter__(self):
         self.use_debug_cursor = self.connection.use_debug_cursor

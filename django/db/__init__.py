@@ -63,7 +63,7 @@ def close_connection(**kwargs):
 # Register an event to reset saved queries when a Django request is started.
 def reset_queries(**kwargs):
     for conn in connections.all():
-        conn.queries = []
+        conn.queries.clear()
 signals.request_started.connect(reset_queries)
 
 # Register an event to reset transaction state and close connections past

@@ -1,3 +1,4 @@
+from collections import deque
 import datetime
 import time
 
@@ -35,7 +36,7 @@ class BaseDatabaseWrapper(object):
         # NAME, USER, etc. It's called `settings_dict` instead of `settings`
         # to disambiguate it from Django settings modules.
         self.connection = None
-        self.queries = []
+        self.queries = deque(maxlen=100)
         self.settings_dict = settings_dict
         self.alias = alias
         self.use_debug_cursor = None
