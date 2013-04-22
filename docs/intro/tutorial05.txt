@@ -388,27 +388,45 @@ We need to amend the line that gives us the ``queryset``::
 
     queryset=Poll.objects.order_by('-pub_date')[:5],
 
-Let's change the queryset so that it also checks the date by comparing it with
-``timezone.now()``. First we need to add an import::
+A naive approach would be to use the following code::
 
+    queryset=Poll.objects.filter(pub_date__lte=timezone.now()) \
+        .order_by('-pub_date')[:5],
+
+But this code will not work. The reasons for this is because your urls.py file
+is evaluated only once, when the web server is started. Therefore, the
+``timezone.now()`` will be always be the same (the time when your webserver was
+started).
+
+One way to solve this problem is to introduced a
+:doc:`custom manager<topics/db/managers/custom-managers>` on the ``Poll``
+model::
+
+    from django.db import models
     from django.utils import timezone
 
-and then we must amend the existing ``url`` function to::
+
+    class PollManager(models.Manager):
+        def published(self):
+            """Only include polls whose publication date is in the past."""
+            queryset = self.get_queryset()
+            return queryset.filter(pub_date__lte=timezone.now())
+
+Once this is done we need to change the ``Poll`` model to make use of this
+manager::
+
+    class Poll(models.Model):
+        # ... fields declaration
+        objects = PollManager()
+
+Finally, we can amend the existing ``url`` function to::
 
     url(r'^$',
         ListView.as_view(
-            queryset=Poll.objects.filter(pub_date__lte=timezone.now) \
-                .order_by('-pub_date')[:5],
+            queryset=Poll.objects.published().order_by('-pub_date')[:5],
             context_object_name='latest_poll_list',
             template_name='polls/index.html'),
         name='index'),
-
-``Poll.objects.filter(pub_date__lte=timezone.now)`` returns a queryset
-containing Polls whose ``pub_date`` is less than or equal to - that is, earlier
-than or equal to - ``timezone.now``. Notice that we use a callable queryset
-argument, ``timezone.now``, which will be evaluated at request time. If we had
-included the parentheses, ``timezone.now()`` would be evaluated just once when
-the web server is started.
 
 Testing our new view
 --------------------
@@ -527,7 +545,7 @@ to them - for example::
 
     url(r'^(?P<pk>\d+)/$',
         DetailView.as_view(
-            queryset=Poll.objects.filter(pub_date__lte=timezone.now),
+            queryset=Poll.objects.published(),
             model=Poll,
             template_name='polls/detail.html'),
         name='detail'),
