@@ -1,8 +1,8 @@
 import re
 
-from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.utils.importlib import import_module
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.utils.module_loading import import_by_path
 
 SESSION_KEY = '_auth_user_id'
 BACKEND_SESSION_KEY = '_auth_user_backend'
@@ -10,19 +10,7 @@ REDIRECT_FIELD_NAME = 'next'
 
 
 def load_backend(path):
-    i = path.rfind('.')
-    module, attr = path[:i], path[i + 1:]
-    try:
-        mod = import_module(module)
-    except ImportError as e:
-        raise ImproperlyConfigured('Error importing authentication backend %s: "%s"' % (path, e))
-    except ValueError:
-        raise ImproperlyConfigured('Error importing authentication backends. Is AUTHENTICATION_BACKENDS a correctly defined list or tuple?')
-    try:
-        cls = getattr(mod, attr)
-    except AttributeError:
-        raise ImproperlyConfigured('Module "%s" does not define a "%s" authentication backend' % (module, attr))
-    return cls()
+    return import_by_path(path)()
 
 
 def get_backends():
@@ -84,14 +72,14 @@ def login(request, user):
         user = request.user
     # TODO: It would be nice to support different login methods, like signed cookies.
     if SESSION_KEY in request.session:
-        if request.session[SESSION_KEY] != user.id:
+        if request.session[SESSION_KEY] != user.pk:
             # To avoid reusing another user's session, create a new, empty
             # session if the existing session corresponds to a different
             # authenticated user.
             request.session.flush()
     else:
         request.session.cycle_key()
-    request.session[SESSION_KEY] = user.id
+    request.session[SESSION_KEY] = user.pk
     request.session[BACKEND_SESSION_KEY] = user.backend
     if hasattr(request, 'user'):
         request.user = user

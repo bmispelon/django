@@ -93,7 +93,7 @@ class UpdateCacheMiddleware(object):
         if not self._should_update_cache(request, response):
             # We don't need to update the cache, just return.
             return response
-        if not response.status_code == 200:
+        if response.streaming or response.status_code != 200:
             return response
         # Try to get the timeout from the "max-age" section of the "Cache-
         # Control" header before reverting to using the default cache_timeout
@@ -126,7 +126,6 @@ class FetchFromCacheMiddleware(object):
     def __init__(self):
         self.cache_timeout = settings.CACHE_MIDDLEWARE_SECONDS
         self.key_prefix = settings.CACHE_MIDDLEWARE_KEY_PREFIX
-        self.cache_anonymous_only = getattr(settings, 'CACHE_MIDDLEWARE_ANONYMOUS_ONLY', False)
         self.cache_alias = settings.CACHE_MIDDLEWARE_ALIAS
         self.cache = get_cache(self.cache_alias)
 

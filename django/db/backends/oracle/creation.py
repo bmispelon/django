@@ -17,6 +17,7 @@ class DatabaseCreation(BaseDatabaseCreation):
 
     data_types = {
         'AutoField':                    'NUMBER(11)',
+        'BinaryField':                  'BLOB',
         'BooleanField':                 'NUMBER(1) CHECK (%(qn_column)s IN (0,1))',
         'CharField':                    'NVARCHAR2(%(max_length)s)',
         'CommaSeparatedIntegerField':   'VARCHAR2(%(max_length)s)',
@@ -104,10 +105,12 @@ class DatabaseCreation(BaseDatabaseCreation):
                     print("Tests cancelled.")
                     sys.exit(1)
 
-        self.connection.settings_dict['SAVED_USER'] = self.connection.settings_dict['USER']
-        self.connection.settings_dict['SAVED_PASSWORD'] = self.connection.settings_dict['PASSWORD']
-        self.connection.settings_dict['TEST_USER'] = self.connection.settings_dict['USER'] = TEST_USER
-        self.connection.settings_dict['PASSWORD'] = TEST_PASSWD
+        from django.db import settings
+        real_settings = settings.DATABASES[self.connection.alias]
+        real_settings['SAVED_USER'] = self.connection.settings_dict['SAVED_USER'] = self.connection.settings_dict['USER']
+        real_settings['SAVED_PASSWORD'] = self.connection.settings_dict['SAVED_PASSWORD'] = self.connection.settings_dict['PASSWORD']
+        real_settings['TEST_USER'] = real_settings['USER'] = self.connection.settings_dict['TEST_USER'] = self.connection.settings_dict['USER'] = TEST_USER
+        real_settings['PASSWORD'] = self.connection.settings_dict['PASSWORD'] = TEST_PASSWD
 
         return self.connection.settings_dict['NAME']
 
@@ -270,6 +273,3 @@ class DatabaseCreation(BaseDatabaseCreation):
             settings_dict['NAME'],
             self._test_database_user(),
         )
-
-    def set_autocommit(self):
-        self.connection.connection.autocommit = True

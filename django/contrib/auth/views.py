@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect, QueryDict
 from django.utils.decorators import method_decorator
-from django.utils.http import base36_to_int
+from django.utils.http import base36_to_int, is_safe_url
 from django.utils.translation import ugettext as _
 from django.shortcuts import resolve_url
 from django.views import generic
@@ -54,14 +54,6 @@ class CurrentSiteMixin(object):
         return context
 
 
-def is_valid_redirect(url, request, allow_empty=False): # XXX: Name?
-    """"Validate that the given URL is on the same host as the given request."""
-    if not url:
-        return allow_empty
-    netloc = urlparse(url)[1]
-    return not netloc or netloc == request.get_host()
-
-
 class LoginView(CurrentAppMixin, CurrentSiteMixin, generic.FormView):
     """Display the login form and handle the login action."""
     form_class = AuthenticationForm
@@ -73,7 +65,6 @@ class LoginView(CurrentAppMixin, CurrentSiteMixin, generic.FormView):
     @method_decorator(csrf_protect)
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
-        request.session.set_test_cookie()
         return super(LoginView, self).dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -89,10 +80,6 @@ class LoginView(CurrentAppMixin, CurrentSiteMixin, generic.FormView):
     def form_valid(self, form):
         """Log the user in and redirect."""
         auth_login(self.request, form.get_user())
-
-        if self.request.session.test_cookie_worked():
-            self.request.session.delete_test_cookie()
-
         # Redirect
         return super(LoginView, self).form_valid(form)
     
@@ -103,7 +90,7 @@ class LoginView(CurrentAppMixin, CurrentSiteMixin, generic.FormView):
 
         """
         redir = self.request.REQUEST.get(self.redirect_field_name)
-        if not is_valid_redirect(redir, self.request, allow_empty=False):
+        if not is_safe_url(url=redir, host=self.request.get_host()):
             redir = resolve_url(settings.LOGIN_REDIRECT_URL)
         return redir
 
@@ -142,12 +129,14 @@ class LogoutView(CurrentAppMixin, CurrentSiteMixin, generic.TemplateView):
 
         """
         redir = self.request.REQUEST.get(self.redirect_field_name)
-        if is_valid_redirect(redir, self.request, allow_empty=False):
-            return redir
-        elif self.success_url is not None:
-            return self.success_url or self.request.path
-        else:
-            return None
+        if redir is not None:
+            safe = is_safe_url(redir, host=self.request.get_host())
+            return redir if safe else self.request.path
+
+        if self.success_url is not None:
+            return self.success_url
+
+        return None # Don't redirect, display a "logout successful" page
 
 
 class LogoutThenLoginView(LogoutView):
@@ -229,7 +218,7 @@ class PasswordResetConfirmView(CurrentAppMixin, generic.FormView):
         UserModel = get_user_model()
         try:
             pk = base36_to_int(kwargs['uidb36'])
-            user = UserModel.objects.get(pk=pk)
+            user = UserModel._default_manager.get(pk=pk)
         except (ValueError, OverflowError, UserModel.DoesNotExist):
             return None
 
