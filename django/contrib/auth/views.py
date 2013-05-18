@@ -13,6 +13,7 @@ from django.utils.http import base36_to_int, is_safe_url
 from django.utils.translation import ugettext as _
 from django.shortcuts import resolve_url
 from django.views import generic
+from django.views.generic.base import ContextMixin, TemplateResponseMixin
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
@@ -95,13 +96,13 @@ class LoginView(CurrentAppMixin, CurrentSiteMixin, generic.FormView):
         return redir
 
 
-class LogoutView(CurrentAppMixin, CurrentSiteMixin, generic.TemplateView):
+class LogoutView(CurrentAppMixin, CurrentSiteMixin, ContextMixin, TemplateResponseMixin, generic.View):
     """Log out the user and display 'You are logged out' message."""
     template_name = 'registration/logged_out.html'
     redirect_field_name = REDIRECT_FIELD_NAME
     success_url = None
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         auth_logout(request)
         redir = self.get_success_url()
 
@@ -109,10 +110,12 @@ class LogoutView(CurrentAppMixin, CurrentSiteMixin, generic.TemplateView):
             return HttpResponseRedirect(redir)
         else:
             # Render the template
-            return super(LogoutView, self).get(request, *args, **kwargs)
+            context = self.get_context_data()
+            return self.render_to_response(context)
 
-    def post(self, request, *args, **kwargs):
-        return self.get(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        # This could be removed when #15619 is decided
+        return self.post(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(LogoutView, self).get_context_data(**kwargs)
