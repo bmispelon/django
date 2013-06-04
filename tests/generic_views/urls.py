@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from django.conf.urls import patterns, url
+from django.conf.urls import patterns, url, include
 from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
 
@@ -262,5 +262,5 @@ urlpatterns = patterns('',
         views.BookSigningDetail.as_view()),
 
     # Useful for testing redirects
-    (r'^accounts/login/$',  'django.contrib.auth.views.login')
+    (r'^accounts/', include('django.contrib.auth.urls')),
 )

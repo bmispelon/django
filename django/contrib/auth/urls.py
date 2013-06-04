@@ -4,16 +4,25 @@
 # elsewhere.
 
 from django.conf.urls import patterns, url
+from django.contrib.auth.views import (
+    LoginView,
+    LogoutView,
+    PasswordChangeView,
+    PasswordChangeDoneView,
+    PasswordResetView,
+    PasswordResetDoneView,
+    PasswordResetConfirmView,
+    PasswordResetCompleteView,
+)
 
 urlpatterns = patterns('',
-    url(r'^login/$', 'django.contrib.auth.views.login', name='login'),
-    url(r'^logout/$', 'django.contrib.auth.views.logout', name='logout'),
-    url(r'^password_change/$', 'django.contrib.auth.views.password_change', name='password_change'),
-    url(r'^password_change/done/$', 'django.contrib.auth.views.password_change_done', name='password_change_done'),
-    url(r'^password_reset/$', 'django.contrib.auth.views.password_reset', name='password_reset'),
-    url(r'^password_reset/done/$', 'django.contrib.auth.views.password_reset_done', name='password_reset_done'),
+    url(r'^login/$', LoginView.as_view(), name='login'),
+    url(r'^logout/$', LogoutView.as_view(), name='logout'),
+    url(r'^password_change/$', PasswordChangeView.as_view(), name='password_change'),
+    url(r'^password_change/done/$', PasswordChangeDoneView.as_view(), name='password_change_done'),
+    url(r'^password_reset/$', PasswordResetView.as_view(), name='password_reset'),
+    url(r'^password_reset/done/$', PasswordResetDoneView.as_view(), name='password_reset_done'),
     url(r'^reset/(?P<uidb36>[0-9A-Za-z]{1,13})-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-        'django.contrib.auth.views.password_reset_confirm',
-        name='password_reset_confirm'),
-    url(r'^reset/done/$', 'django.contrib.auth.views.password_reset_complete', name='password_reset_complete'),
+        PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    url(r'^reset/done/$', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 )

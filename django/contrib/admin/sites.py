@@ -262,7 +262,7 @@ class AdminSite(object):
         """
         Handles the "change password" task -- both form display and validation.
         """
-        from django.contrib.auth.views import password_change
+        from django.contrib.auth.views import password_change # XXX: deprecated
         url = reverse('admin:password_change_done', current_app=self.name)
         defaults = {
             'current_app': self.name,
@@ -276,7 +276,7 @@ class AdminSite(object):
         """
         Displays the "success" page after a password change.
         """
-        from django.contrib.auth.views import password_change_done
+        from django.contrib.auth.views import password_change_done # XXX: deprecated
         defaults = {
             'current_app': self.name,
             'extra_context': extra_context or {},
@@ -305,7 +305,7 @@ class AdminSite(object):
 
         This should *not* assume the user is already logged in.
         """
-        from django.contrib.auth.views import logout
+        from django.contrib.auth.views import logout # XXX: deprecated
         defaults = {
             'current_app': self.name,
             'extra_context': extra_context or {},
@@ -319,7 +319,7 @@ class AdminSite(object):
         """
         Displays the login form for the given HttpRequest.
         """
-        from django.contrib.auth.views import login
+        from django.contrib.auth.views import login # XXX: deprecated
         context = {
             'title': _('Log in'),
             'app_path': request.get_full_path(),

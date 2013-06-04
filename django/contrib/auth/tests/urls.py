@@ -2,7 +2,7 @@ from django.conf.urls import patterns, url
 from django.contrib.auth import context_processors
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.urls import urlpatterns
-from django.contrib.auth.views import password_reset, login
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetView
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages.api import info
 from django.http import HttpResponse, HttpRequest
@@ -60,13 +60,13 @@ def custom_request_auth_login(request):
 
 # special urls for auth test cases
 urlpatterns = urlpatterns + patterns('',
-    (r'^logout/custom_query/$', 'django.contrib.auth.views.logout', dict(redirect_field_name='follow')),
-    (r'^logout/next_page/$', 'django.contrib.auth.views.logout', dict(next_page='/somewhere/')),
+    (r'^logout/custom_query/$', LogoutView.as_view(redirect_field_name='follow')),
+    (r'^logout/next_page/$', LogoutView.as_view(success_url='/somewhere/')),
     (r'^remote_user/$', remote_user_auth_view),
-    (r'^password_reset_from_email/$', 'django.contrib.auth.views.password_reset', dict(from_email='staffmember@example.com')),
-    (r'^admin_password_reset/$', 'django.contrib.auth.views.password_reset', dict(is_admin_site=True)),
-    (r'^login_required/$', login_required(password_reset)),
-    (r'^login_required_login_url/$', login_required(password_reset, login_url='/somewhere/')),
+    (r'^password_reset_from_email/$', PasswordResetView.as_view(from_email='staffmember@example.com')),
+    (r'^admin_password_reset/$', PasswordResetView.as_view(is_admin_site=True)),
+    (r'^login_required/$', login_required(PasswordResetView.as_view())),
+    (r'^login_required_login_url/$', login_required(PasswordResetView.as_view(), login_url='/somewhere/')),
 
     (r'^auth_processor_no_attr_access/$', auth_processor_no_attr_access),
     (r'^auth_processor_attr_access/$', auth_processor_attr_access),

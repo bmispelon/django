@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 
 from django.core.urlresolvers import NoReverseMatch
-from django.contrib.auth.views import logout
 from django.utils.unittest import TestCase
 from django.shortcuts import resolve_url
+from django.views.defaults import page_not_found
 
 from .models import UnimportantThing
 
@@ -41,15 +41,15 @@ class ResolveUrlTests(TestCase):
         Tests that passing a view name to ``resolve_url`` will result in the
         URL path mapping to that view name.
         """
-        resolved_url = resolve_url(logout)
-        self.assertEqual('/accounts/logout/', resolved_url)
+        resolved_url = resolve_url(page_not_found)
+        self.assertEqual('/views/non_existing_url/', resolved_url)
 
     def test_valid_view_name(self):
         """
         Tests that passing a view function to ``resolve_url`` will result in
         the URL path mapping to that view.
         """
-        resolved_url = resolve_url('django.contrib.auth.views.logout')
+        resolved_url = resolve_url('logout')
         self.assertEqual('/accounts/logout/', resolved_url)
 
     def test_domain(self):
