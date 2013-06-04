@@ -2,7 +2,7 @@ from django.conf.urls import patterns, url
 from django.contrib.auth import context_processors
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.urls import urlpatterns
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetView
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetView, PasswordResetConfirmView, PasswordChangeView
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages.api import info
 from django.http import HttpResponse, HttpRequest
@@ -58,12 +58,25 @@ def userpage(request):
 def custom_request_auth_login(request):
     return login(request, authentication_form=CustomRequestAuthenticationForm)
 
+
+# XXX: the commented-out ones don't make sens with the CBV but they should
+# be included in the legacy tests.
+
 # special urls for auth test cases
 urlpatterns = urlpatterns + patterns('',
     (r'^logout/custom_query/$', LogoutView.as_view(redirect_field_name='follow')),
     (r'^logout/next_page/$', LogoutView.as_view(success_url='/somewhere/')),
+    # (r'^logout/next_page/named/$', LogoutView.as_view(success_url='password_reset')),
     (r'^remote_user/$', remote_user_auth_view),
     (r'^password_reset_from_email/$', PasswordResetView.as_view(from_email='staffmember@example.com')),
+    (r'^password_reset/custom_redirect/$', PasswordResetView.as_view(success_url='/custom/')),
+    # (r'^password_reset/custom_redirect/named/$', PasswordResetView.as_view(success_url='password_reset')),
+    (r'^reset/custom/(?P<uidb36>[0-9A-Za-z]{1,13})-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        PasswordResetConfirmView.as_view(success_url='/custom/')),
+    # (r'^reset/custom/named/(?P<uidb36>[0-9A-Za-z]{1,13})-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+    #     PasswordResetConfirmView.as_view(success_url='password_reset')),
+    (r'^password_change/custom/$', PasswordChangeView.as_view(success_url='/custom/')),
+    # (r'^password_change/custom/named/$', PasswordChangeView.as_view(success_url='password_reset')),
     (r'^admin_password_reset/$', PasswordResetView.as_view(is_admin_site=True)),
     (r'^login_required/$', login_required(PasswordResetView.as_view())),
     (r'^login_required_login_url/$', login_required(PasswordResetView.as_view(), login_url='/somewhere/')),

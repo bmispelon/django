@@ -63,6 +63,11 @@ DEFAULT_LOGGING = {
             'level': 'ERROR',
             'propagate': False,
         },
+        'django.security': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
         'py.warnings': {
             'handlers': ['console'],
         },
@@ -87,8 +92,8 @@ class AdminEmailHandler(logging.Handler):
             request = record.request
             subject = '%s (%s IP): %s' % (
                 record.levelname,
-                (request.META.get('REMOTE_ADDR') in settings.INTERNAL_IPS
-                 and 'internal' or 'EXTERNAL'),
+                ('internal' if request.META.get('REMOTE_ADDR') in settings.INTERNAL_IPS
+                 else 'EXTERNAL'),
                 record.getMessage()
             )
             filter = get_exception_reporter_filter(request)
@@ -111,7 +116,7 @@ class AdminEmailHandler(logging.Handler):
 
         message = "%s\n\n%s" % (stack_trace, request_repr)
         reporter = ExceptionReporter(request, is_email=True, *exc_info)
-        html_message = self.include_html and reporter.get_traceback_html() or None
+        html_message = reporter.get_traceback_html() if self.include_html else None
         mail.mail_admins(subject, message, fail_silently=True,
                          html_message=html_message,
                          connection=self.connection())
