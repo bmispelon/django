@@ -1,3 +1,4 @@
+from collections import defaultdict
 import importlib
 import json
 import os
@@ -248,7 +249,7 @@ def get_javascript_catalog(locale, domain, packages):
         # Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;
         plural = [el.strip() for el in plural.split(';') if el.strip().startswith('plural=')][0].split('=', 1)[1]
 
-    pdict = {}
+    pdict = defaultdict(dict)
     maxcnts = {}
     catalog = {}
     for k, v in t.items():
@@ -260,7 +261,7 @@ def get_javascript_catalog(locale, domain, packages):
             msgid = k[0]
             cnt = k[1]
             maxcnts[msgid] = max(cnt, maxcnts.get(msgid, 0))
-            pdict.setdefault(msgid, {})[cnt] = v
+            pdict[msgid][cnt] = v
         else:
             raise TypeError(k)
     for k, v in pdict.items():

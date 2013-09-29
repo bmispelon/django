@@ -1,7 +1,7 @@
 # encoding: utf8
 from __future__ import unicode_literals
 from optparse import make_option
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 from importlib import import_module
 import itertools
 import traceback
@@ -148,7 +148,7 @@ class Command(BaseCommand):
         tables = connection.introspection.table_names()
         seen_models = connection.introspection.installed_models(tables)
         created_models = set()
-        pending_references = {}
+        pending_references = defaultdict(list)
 
         # Build the manifest of apps and models that are to be synchronized
         all_models = [
@@ -188,7 +188,7 @@ class Command(BaseCommand):
                     seen_models.add(model)
                     created_models.add(model)
                     for refto, refs in references.items():
-                        pending_references.setdefault(refto, []).extend(refs)
+                        pending_references[refto].extend(refs)
                         if refto in seen_models:
                             sql.extend(connection.creation.sql_for_pending_references(refto, no_style(), pending_references))
                     sql.extend(connection.creation.sql_for_pending_references(model, no_style(), pending_references))

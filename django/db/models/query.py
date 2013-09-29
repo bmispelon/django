@@ -2,6 +2,7 @@
 The main QuerySet implementation. This provides the public API for the ORM.
 """
 
+from collections import defaultdict
 import copy
 import itertools
 import sys
@@ -1812,14 +1813,14 @@ def prefetch_one_level(instances, prefetcher, attname):
 
     all_related_objects = list(rel_qs)
 
-    rel_obj_cache = {}
+    rel_obj_cache = defaultdict(list)
     for rel_obj in all_related_objects:
         rel_attr_val = rel_obj_attr(rel_obj)
-        rel_obj_cache.setdefault(rel_attr_val, []).append(rel_obj)
+        rel_obj_cache[rel_attr_val].append(rel_obj)
 
     for obj in instances:
         instance_attr_val = instance_attr(obj)
-        vals = rel_obj_cache.get(instance_attr_val, [])
+        vals = rel_obj_cache[instance_attr_val]
         if single:
             # Need to assign to single cache on instance
             setattr(obj, cache_name, vals[0] if vals else None)

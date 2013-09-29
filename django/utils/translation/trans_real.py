@@ -1,7 +1,7 @@
 """Translation helper functions."""
 from __future__ import unicode_literals
 
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 import locale
 import os
 import re
@@ -503,7 +503,7 @@ def templatize(src, origin=None):
     plural = []
     incomment = False
     comment = []
-    lineno_comment_map = {}
+    lineno_comment_map = defaultdict(list)
     comment_lineno_cache = None
 
     for t in Lexer(src, origin).tokenize():
@@ -645,8 +645,7 @@ def templatize(src, origin=None):
                         out.write(blankout(p, 'F'))
             elif t.token_type == TOKEN_COMMENT:
                 if t.contents.lstrip().startswith(TRANSLATOR_COMMENT_MARK):
-                    lineno_comment_map.setdefault(t.lineno,
-                                                  []).append(t.contents)
+                    lineno_comment_map[t.lineno].append(t.contents)
                     comment_lineno_cache = t.lineno
             else:
                 out.write(blankout(t.contents, 'X'))

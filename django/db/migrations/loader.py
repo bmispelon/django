@@ -1,5 +1,7 @@
-import os
+from collections import defaultdict
 from importlib import import_module
+import os
+
 from django.utils.functional import cached_property
 from django.db.models.loading import cache
 from django.db.migrations.recorder import MigrationRecorder
@@ -136,10 +138,10 @@ class MigrationLoader(object):
         # Calculate reverse dependencies - i.e., for each migration, what depends on it?
         # This is just for dependency re-pointing when applying replacements,
         # so we ignore run_before here.
-        reverse_dependencies = {}
+        reverse_dependencies = defaultdict(set)
         for key, migration in normal.items():
             for parent in migration.dependencies:
-                reverse_dependencies.setdefault(parent, set()).add(key)
+                reverse_dependencies[parent].add(key)
         # Carry out replacements if we can - that is, if all replaced migrations
         # are either unapplied or missing.
         for key, migration in replacing.items():
@@ -156,7 +158,7 @@ class MigrationLoader(object):
             for replaced in migration.replaces:
                 if replaced in normal:
                     del normal[replaced]
-                for child_key in reverse_dependencies.get(replaced, set()):
+                for child_key in reverse_dependencies[replaced]:
                     normal[child_key].dependencies.remove(replaced)
                     normal[child_key].dependencies.append(key)
             normal[key] = migration

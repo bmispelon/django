@@ -1,5 +1,7 @@
+from collections import defaultdict
 import re
 import sys
+
 from django.utils import datetime_safe
 from django.utils.six.moves import input
 from django.db.migrations import operations
@@ -308,18 +310,18 @@ class MigrationAutodetector(object):
         required dependencies.
         """
         # Gather other app dependencies in a first pass
-        app_dependencies = {}
+        app_dependencies = defaultdict(set)
         for app_label, migrations in changes.items():
             for migration in migrations:
                 for dep_app_label, name in migration.dependencies:
-                    app_dependencies.setdefault(app_label, set()).add(dep_app_label)
+                    app_dependencies[app_label].add(dep_app_label)
         required_apps = set(app_labels)
         # Keep resolving till there's no change
         old_required_apps = None
         while old_required_apps != required_apps:
             old_required_apps = set(required_apps)
             for app_label in list(required_apps):
-                required_apps.update(app_dependencies.get(app_label, set()))
+                required_apps.update(app_dependencies[app_label])
         # Remove all migrations that aren't needed
         for app_label in list(changes.keys()):
             if app_label not in required_apps:

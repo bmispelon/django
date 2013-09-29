@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import codecs
+from collections import defaultdict
 import os
 import re
 import warnings
@@ -29,13 +30,13 @@ def sql_create(app, style, connection):
     final_output = []
     tables = connection.introspection.table_names()
     known_models = set(model for model in connection.introspection.installed_models(tables) if model not in app_models)
-    pending_references = {}
+    pending_references = defaultdict(list)
 
     for model in app_models:
         output, references = connection.creation.sql_create_model(model, style, known_models)
         final_output.extend(output)
         for refto, refs in references.items():
-            pending_references.setdefault(refto, []).extend(refs)
+            pending_references[refto].extend(refs)
             if refto in known_models:
                 final_output.extend(connection.creation.sql_for_pending_references(refto, style, pending_references))
         final_output.extend(connection.creation.sql_for_pending_references(model, style, pending_references))
@@ -77,7 +78,7 @@ def sql_delete(app, style, connection):
     # Output DROP TABLE statements for standard application tables.
     to_delete = set()
 
-    references_to_delete = {}
+    references_to_delete = defaultdict(list)
     app_models = models.get_models(app, include_auto_created=True)
     for model in app_models:
         if cursor and connection.introspection.table_name_converter(model._meta.db_table) in table_names:
@@ -85,7 +86,7 @@ def sql_delete(app, style, connection):
             opts = model._meta
             for f in opts.local_fields:
                 if f.rel and f.rel.to not in to_delete:
-                    references_to_delete.setdefault(f.rel.to, []).append((model, f))
+                    references_to_delete[f.rel.to].append((model, f))
 
             to_delete.add(model)
 
