@@ -239,6 +239,7 @@ class Options(object):
     def __str__(self):
         return "%s.%s" % (smart_text(self.app_label), smart_text(self.model_name))
 
+    @property
     def verbose_name_raw(self):
         """
         There are a few places where the untranslated verbose name is needed
@@ -250,9 +251,9 @@ class Options(object):
         raw = force_text(self.verbose_name)
         activate(lang)
         return raw
-    verbose_name_raw = property(verbose_name_raw)
 
-    def _swapped(self):
+    @property
+    def swapped(self):
         """
         Has this model been swapped out for another? If so, return the model
         name of the replacement; otherwise, return None.
@@ -276,7 +277,6 @@ class Options(object):
                 if '%s.%s' % (swapped_label, swapped_object.lower()) not in (None, model_label):
                     return swapped_for
         return None
-    swapped = property(_swapped)
 
     @cached_property
     def fields(self):
@@ -329,13 +329,13 @@ class Options(object):
         self._field_cache = tuple(cache)
         self._field_name_cache = [x for x, _ in cache]
 
-    def _many_to_many(self):
+    @property
+    def many_to_many(self):
         try:
             self._m2m_cache
         except AttributeError:
             self._fill_m2m_cache()
         return list(self._m2m_cache)
-    many_to_many = property(_many_to_many)
 
     def get_m2m_with_model(self):
         """

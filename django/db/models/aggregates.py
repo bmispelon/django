@@ -34,9 +34,9 @@ class Aggregate(object):
         self.lookup = lookup
         self.extra = extra
 
-    def _default_alias(self):
+    @property
+    def default_alias(self):
         return '%s__%s' % (self.lookup, self.name.lower())
-    default_alias = property(_default_alias)
 
     def add_to_query(self, query, alias, col, source, is_summary):
         """Add the aggregate to the nominated query.

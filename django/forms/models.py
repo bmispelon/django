@@ -1081,14 +1081,14 @@ class ModelChoiceField(ChoiceField):
         result.queryset = result.queryset
         return result
 
-    def _get_queryset(self):
+    @property
+    def queryset(self):
         return self._queryset
 
-    def _set_queryset(self, queryset):
+    @queryset.setter
+    def queryset(self, queryset):
         self._queryset = queryset
         self.widget.choices = self.choices
-
-    queryset = property(_get_queryset, _set_queryset)
 
     # this method will be used to create object labels by the QuerySetIterator.
     # Override it to customize the label.

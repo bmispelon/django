@@ -370,7 +370,8 @@ class Client(RequestFactory):
         """
         self.exc_info = sys.exc_info()
 
-    def _session(self):
+    @property
+    def session(self):
         """
         Obtains the current session variables.
         """
@@ -380,7 +381,6 @@ class Client(RequestFactory):
             if cookie:
                 return engine.SessionStore(cookie.value)
         return {}
-    session = property(_session)
 
     def request(self, **request):
         """

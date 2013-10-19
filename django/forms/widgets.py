@@ -812,13 +812,13 @@ class MultiWidget(Widget):
         """
         raise NotImplementedError('Subclasses must implement this method.')
 
-    def _get_media(self):
+    @property
+    def media(self):
         "Media for a multiwidget is the combination of all media of the subwidgets"
         media = Media()
         for w in self.widgets:
             media = media + w.media
         return media
-    media = property(_get_media)
 
     def __deepcopy__(self, memo):
         obj = super(MultiWidget, self).__deepcopy__(memo)

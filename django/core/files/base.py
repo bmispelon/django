@@ -35,7 +35,8 @@ class File(FileProxyMixin):
     def __len__(self):
         return self.size
 
-    def _get_size(self):
+    @property
+    def size(self):
         if not hasattr(self, '_size'):
             if hasattr(self.file, 'size'):
                 self._size = self.file.size
@@ -50,14 +51,13 @@ class File(FileProxyMixin):
                 raise AttributeError("Unable to determine the file's size.")
         return self._size
 
-    def _set_size(self, size):
+    @size.setter
+    def size(self, size):
         self._size = size
 
-    size = property(_get_size, _set_size)
-
-    def _get_closed(self):
+    @property
+    def closed(self):
         return not self.file or self.file.closed
-    closed = property(_get_closed)
 
     def chunks(self, chunk_size=None):
         """

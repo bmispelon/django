@@ -139,12 +139,12 @@ class FileBasedCache(BaseCache):
         path = os.path.join(path[:2], path[2:4], path[4:])
         return os.path.join(self._dir, path)
 
-    def _get_num_entries(self):
+    @property
+    def _num_entries(self):
         count = 0
         for _,_,files in os.walk(self._dir):
             count += len(files)
         return count
-    _num_entries = property(_get_num_entries)
 
     def clear(self):
         try:

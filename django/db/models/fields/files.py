@@ -41,36 +41,37 @@ class FieldFile(File):
         if not self:
             raise ValueError("The '%s' attribute has no file associated with it." % self.field.name)
 
-    def _get_file(self):
+    @property
+    def file(self):
         self._require_file()
         if not hasattr(self, '_file') or self._file is None:
             self._file = self.storage.open(self.name, 'rb')
         return self._file
 
-    def _set_file(self, file):
+    @file.setter
+    def file(self, file):
         self._file = file
 
-    def _del_file(self):
+    @file.deleter
+    def file(self):
         del self._file
 
-    file = property(_get_file, _set_file, _del_file)
-
-    def _get_path(self):
+    @property
+    def path(self):
         self._require_file()
         return self.storage.path(self.name)
-    path = property(_get_path)
 
-    def _get_url(self):
+    @property
+    def url(self):
         self._require_file()
         return self.storage.url(self.name)
-    url = property(_get_url)
 
-    def _get_size(self):
+    @property
+    def size(self):
         self._require_file()
         if not self._committed:
             return self.file.size
         return self.storage.size(self.name)
-    size = property(_get_size)
 
     def open(self, mode='rb'):
         self._require_file()
@@ -119,10 +120,10 @@ class FieldFile(File):
             self.instance.save()
     delete.alters_data = True
 
-    def _get_closed(self):
+    @property
+    def closed(self):
         file = getattr(self, '_file', None)
         return file is None or file.closed
-    closed = property(_get_closed)
 
     def close(self):
         file = getattr(self, '_file', None)

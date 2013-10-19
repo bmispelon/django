@@ -153,10 +153,9 @@ class SessionBase(object):
             self._session_key = self._get_new_session_key()
         return self._session_key
 
-    def _get_session_key(self):
+    @property
+    def session_key(self):
         return self._session_key
-
-    session_key = property(_get_session_key)
 
     def _get_session(self, no_load=False):
         """

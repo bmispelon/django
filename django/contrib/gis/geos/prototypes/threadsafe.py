@@ -54,11 +54,12 @@ class GEOSFunc(object):
     def __str__(self):
         return self.cfunc.__name__
 
-    # argtypes property
-    def _get_argtypes(self):
+    @property
+    def argtypes(self):
         return self.cfunc.argtypes
 
-    def _set_argtypes(self, argtypes):
+    @argtypes.setter
+    def argtypes(self, argtypes):
         if self.threaded:
             new_argtypes = [CONTEXT_PTR]
             new_argtypes.extend(argtypes)
@@ -66,22 +67,18 @@ class GEOSFunc(object):
         else:
             self.cfunc.argtypes = argtypes
 
-    argtypes = property(_get_argtypes, _set_argtypes)
-
-    # restype property
-    def _get_restype(self):
+    @property
+    def restype(self):
         return self.cfunc.restype
 
-    def _set_restype(self, restype):
+    @restype.setter
+    def restype(self, restype):
         self.cfunc.restype = restype
 
-    restype = property(_get_restype, _set_restype)
-
-    # errcheck property
-    def _get_errcheck(self):
+    @property
+    def errcheck(self):
         return self.cfunc.errcheck
 
-    def _set_errcheck(self, errcheck):
+    @errcheck.setter
+    def errcheck(self, errcheck):
         self.cfunc.errcheck = errcheck
-
-    errcheck = property(_get_errcheck, _set_errcheck)

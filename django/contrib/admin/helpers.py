@@ -46,12 +46,12 @@ class AdminForm(object):
                 **options
             )
 
-    def _media(self):
+    @property
+    def media(self):
         media = self.form.media
         for fs in self:
             media = media + fs.media
         return media
-    media = property(_media)
 
 class Fieldset(object):
     def __init__(self, form, name=None, readonly_fields=(), fields=(), classes=(),
@@ -63,7 +63,8 @@ class Fieldset(object):
         self.model_admin = model_admin
         self.readonly_fields = readonly_fields
 
-    def _media(self):
+    @property
+    def media(self):
         if 'collapse' in self.classes:
             extra = '' if settings.DEBUG else '.min'
             js = ['jquery%s.js' % extra,
@@ -71,7 +72,6 @@ class Fieldset(object):
                   'collapse%s.js' % extra]
             return forms.Media(js=[static('admin/js/%s' % url) for url in js])
         return forms.Media()
-    media = property(_media)
 
     def __iter__(self):
         for field in self.fields:
@@ -230,12 +230,12 @@ class InlineAdminFormSet(object):
             else:
                 yield self.formset.form.base_fields[field_name]
 
-    def _media(self):
+    @property
+    def media(self):
         media = self.opts.media + self.formset.media
         for fs in self:
             media = media + fs.media
         return media
-    media = property(_media)
 
 class InlineAdminForm(AdminForm):
     """

@@ -61,13 +61,13 @@ class MeasureBase(object):
         if default_unit and isinstance(default_unit, six.string_types):
             self._default_unit = default_unit
 
-    def _get_standard(self):
+    @property
+    def standard(self):
         return getattr(self, self.STANDARD_UNIT)
 
-    def _set_standard(self, value):
+    @standard.setter
+    def standard(self, value):
         setattr(self, self.STANDARD_UNIT, value)
-
-    standard = property(_get_standard, _set_standard)
 
     def __getattr__(self, name):
         if name in self.UNITS:

@@ -165,13 +165,15 @@ class Layer(GDALBase):
         return [capi.get_field_precision(capi.get_field_defn(self._ldefn, i))
                 for i in xrange(self.num_fields)]
 
-    def _get_spatial_filter(self):
+    @property
+    def spatial_filter(self):
         try:
             return OGRGeometry(geom_api.clone_geom(capi.get_spatial_filter(self.ptr)))
         except OGRException:
             return None
 
-    def _set_spatial_filter(self, filter):
+    @spatial_filter.setter
+    def spatial_filter(self, filter):
         if isinstance(filter, OGRGeometry):
             capi.set_spatial_filter(self.ptr, filter.ptr)
         elif isinstance(filter, (tuple, list)):
@@ -185,8 +187,6 @@ class Layer(GDALBase):
             capi.set_spatial_filter(self.ptr, None)
         else:
             raise TypeError('Spatial filter must be either an OGRGeometry instance, a 4-tuple, or None.')
-
-    spatial_filter = property(_get_spatial_filter, _set_spatial_filter)
 
     #### Layer Methods ####
     def get_fields(self, field_name):

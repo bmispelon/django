@@ -39,7 +39,8 @@ class Message(object):
     def __str__(self):
         return force_text(self.message)
 
-    def _get_tags(self):
+    @property
+    def tags(self):
         label_tag = force_text(LEVEL_TAGS.get(self.level, ''),
                                   strings_only=True)
         extra_tags = force_text(self.extra_tags, strings_only=True)
@@ -50,7 +51,6 @@ class Message(object):
         elif label_tag:
             return label_tag
         return ''
-    tags = property(_get_tags)
 
 
 class BaseStorage(object):
@@ -158,7 +158,8 @@ class BaseStorage(object):
         message = Message(level, message, extra_tags=extra_tags)
         self._queued_messages.append(message)
 
-    def _get_level(self):
+    @property
+    def level(self):
         """
         Returns the minimum recorded level.
 
@@ -169,7 +170,8 @@ class BaseStorage(object):
             self._level = getattr(settings, 'MESSAGE_LEVEL', constants.INFO)
         return self._level
 
-    def _set_level(self, value=None):
+    @level.setter
+    def level(self, value=None):
         """
         Sets a custom minimum recorded level.
 
@@ -180,5 +182,3 @@ class BaseStorage(object):
             del self._level
         else:
             self._level = int(value)
-
-    level = property(_get_level, _set_level, _set_level)

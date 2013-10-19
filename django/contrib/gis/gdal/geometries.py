@@ -199,17 +199,17 @@ class OGRGeometry(GDALBase):
         "Returns 0 for points, 1 for lines, and 2 for surfaces."
         return capi.get_dims(self.ptr)
 
-    def _get_coord_dim(self):
+    @property
+    def coord_dim(self):
         "Returns the coordinate dimension of the Geometry."
         return capi.get_coord_dim(self.ptr)
 
-    def _set_coord_dim(self, dim):
+    @coord_dim.setter
+    def coord_dim(self, dim):
         "Sets the coordinate dimension of this Geometry."
         if not dim in (2, 3):
             raise ValueError('Geometry dimension must be either 2 or 3')
         capi.set_coord_dim(self.ptr, dim)
-
-    coord_dim = property(_get_coord_dim, _set_coord_dim)
 
     @property
     def geom_count(self):
@@ -259,8 +259,8 @@ class OGRGeometry(GDALBase):
 
     #### SpatialReference-related Properties ####
 
-    # The SRS property
-    def _get_srs(self):
+    @property
+    def srs(self):
         "Returns the Spatial Reference for this Geometry."
         try:
             srs_ptr = capi.get_geom_srs(self.ptr)
@@ -268,7 +268,8 @@ class OGRGeometry(GDALBase):
         except SRSException:
             return None
 
-    def _set_srs(self, srs):
+    @srs.setter
+    def srs(self, srs):
         "Sets the SpatialReference for this geometry."
         # Do not have to clone the `SpatialReference` object pointer because
         # when it is assigned to this `OGRGeometry` it's internal OGR
@@ -283,22 +284,19 @@ class OGRGeometry(GDALBase):
             raise TypeError('Cannot assign spatial reference with object of type: %s' % type(srs))
         capi.assign_srs(self.ptr, srs_ptr)
 
-    srs = property(_get_srs, _set_srs)
-
-    # The SRID property
-    def _get_srid(self):
+    @property
+    def srid(self):
         srs = self.srs
         if srs:
             return srs.srid
         return None
 
-    def _set_srid(self, srid):
+    @srid.setter
+    def srid(self, srid):
         if isinstance(srid, six.integer_types):
             self.srs = srid
         else:
             raise TypeError('SRID must be set with an integer.')
-
-    srid = property(_get_srid, _set_srid)
 
     #### Output Methods ####
     @property

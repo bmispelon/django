@@ -511,12 +511,14 @@ class RegexField(CharField):
             error_messages['invalid'] = error_message
             kwargs['error_messages'] = error_messages
         super(RegexField, self).__init__(max_length, min_length, *args, **kwargs)
-        self._set_regex(regex)
+        self.regex = regex
 
-    def _get_regex(self):
+    @property
+    def regex(self):
         return self._regex
 
-    def _set_regex(self, regex):
+    @regex.setter
+    def regex(self, regex):
         if isinstance(regex, six.string_types):
             regex = re.compile(regex, re.UNICODE)
         self._regex = regex
@@ -524,8 +526,6 @@ class RegexField(CharField):
             self.validators.remove(self._regex_validator)
         self._regex_validator = validators.RegexValidator(regex=regex)
         self.validators.append(self._regex_validator)
-
-    regex = property(_get_regex, _set_regex)
 
 
 class EmailField(CharField):

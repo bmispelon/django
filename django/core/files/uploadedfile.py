@@ -34,10 +34,12 @@ class UploadedFile(File):
         return force_str("<%s: %s (%s)>" % (
             self.__class__.__name__, self.name, self.content_type))
 
-    def _get_name(self):
+    @property
+    def name(self):
         return self._name
 
-    def _set_name(self, name):
+    @name.setter
+    def name(self, name):
         # Sanitize the file name so that it can't be dangerous.
         if name is not None:
             # Just use the basename of the file -- anything else is dangerous.
@@ -50,8 +52,6 @@ class UploadedFile(File):
                 name = name[:255 - len(ext)] + ext
 
         self._name = name
-
-    name = property(_get_name, _set_name)
 
 class TemporaryUploadedFile(UploadedFile):
     """

@@ -87,7 +87,8 @@ class Comment(BaseCommentAbstractModel):
             self.submit_date = timezone.now()
         super(Comment, self).save(*args, **kwargs)
 
-    def _get_userinfo(self):
+    @property
+    def userinfo(self):
         """
         Get a dictionary that pulls together information about the poster
         safely for both authenticated and non-authenticated comments.
@@ -114,34 +115,39 @@ class Comment(BaseCommentAbstractModel):
                     userinfo["name"] = u.get_username()
             self._userinfo = userinfo
         return self._userinfo
-    userinfo = property(_get_userinfo, doc=_get_userinfo.__doc__)
 
-    def _get_name(self):
+    @property
+    def name(self):
+        """The name of the user who posted this comment"""
         return self.userinfo["name"]
 
-    def _set_name(self, val):
+    @name.setter
+    def name(self, val):
         if self.user_id:
             raise AttributeError(_("This comment was posted by an authenticated "\
                                    "user and thus the name is read-only."))
         self.user_name = val
-    name = property(_get_name, _set_name, doc="The name of the user who posted this comment")
 
-    def _get_email(self):
+    @property
+    def email(self):
+        """The email of the user who posted this comment"""
         return self.userinfo["email"]
 
-    def _set_email(self, val):
+    @email.setter
+    def email(self, val):
         if self.user_id:
             raise AttributeError(_("This comment was posted by an authenticated "\
                                    "user and thus the email is read-only."))
         self.user_email = val
-    email = property(_get_email, _set_email, doc="The email of the user who posted this comment")
 
-    def _get_url(self):
+    @property
+    def url(self):
+        """The URL given by the user who posted this comment"""
         return self.userinfo["url"]
 
-    def _set_url(self, val):
+    @url.setter
+    def url(self, val):
         self.user_url = val
-    url = property(_get_url, _set_url, doc="The URL given by the user who posted this comment")
 
     def get_absolute_url(self, anchor_pattern="#c%(id)s"):
         return self.get_content_object_url() + (anchor_pattern % self.__dict__)

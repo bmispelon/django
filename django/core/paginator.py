@@ -63,7 +63,8 @@ class Paginator(object):
         """
         return Page(*args, **kwargs)
 
-    def _get_count(self):
+    @property
+    def count(self):
         """
         Returns the total number of objects, across all pages.
         """
@@ -76,9 +77,9 @@ class Paginator(object):
                 # (i.e. is of type list).
                 self._count = len(self.object_list)
         return self._count
-    count = property(_get_count)
 
-    def _get_num_pages(self):
+    @property
+    def num_pages(self):
         """
         Returns the total number of pages.
         """
@@ -89,15 +90,14 @@ class Paginator(object):
                 hits = max(1, self.count - self.orphans)
                 self._num_pages = int(ceil(hits / float(self.per_page)))
         return self._num_pages
-    num_pages = property(_get_num_pages)
 
-    def _get_page_range(self):
+    @property
+    def page_range(self):
         """
         Returns a 1-based range of pages for iterating through within
         a template for loop.
         """
         return range(1, self.num_pages + 1)
-    page_range = property(_get_page_range)
 
 
 QuerySetPaginator = Paginator   # For backwards-compatibility.

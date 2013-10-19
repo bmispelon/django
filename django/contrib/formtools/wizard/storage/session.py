@@ -8,12 +8,12 @@ class SessionStorage(storage.BaseStorage):
         if self.prefix not in self.request.session:
             self.init_data()
 
-    def _get_data(self):
+    @property
+    def data(self):
         self.request.session.modified = True
         return self.request.session[self.prefix]
 
-    def _set_data(self, value):
+    @data.setter
+    def data(self, value):
         self.request.session[self.prefix] = value
         self.request.session.modified = True
-
-    data = property(_get_data, _set_data)
