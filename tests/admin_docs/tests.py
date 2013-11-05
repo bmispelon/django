@@ -5,10 +5,46 @@ try:
 except ImportError:
     docutils = None
 
+from django.conf import settings
 from django.contrib.admindocs import utils
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.test import TestCase
 from django.test.utils import override_settings
+
+class ContribSitesTests(TestCase):
+    urls = 'admin_docs.urls'
+
+    def setUp(self):
+        self.old_Site_meta_installed = Site._meta.installed
+        Site._meta.installed = True
+        User.objects.create_superuser('super', None, 'secret')
+        self.client.login(username='super', password='secret')
+
+    def tearDown(self):
+        Site._meta.installed = self.old_Site_meta_installed
+
+    def test_with_sites_framework(self):
+        """
+        Admin docs should work with contrib.sites installed.
+        """
+        response = self.client.get('/admindocs/views/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<h1>View documentation</h1>")
+
+    @override_settings(
+        SITE_ID=None,
+        INSTALLED_APPS=[app for app in settings.INSTALLED_APPS if app != 'django.contrib.sites']
+    )
+    def test_no_sites_framework(self):
+        """
+        Admindocs should work even if contrib.sites is not installed.
+        """
+        del settings.SITE_ID  # It's safe to do so because this test is wrapped in @override_settings
+        Site._meta.installed = False
+        response = self.client.get('/admindocs/views/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<h1>View documentation</h1>")
 
 
 @override_settings(PASSWORD_HASHERS=('django.contrib.auth.hashers.SHA1PasswordHasher',))

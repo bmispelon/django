@@ -29,13 +29,14 @@ def _simple_domain_name_validator(value):
 
 class SiteManager(models.Manager):
 
-    def get_current(self):
+    def get_current(self, settings=None):
         """
         Returns the current ``Site`` based on the SITE_ID in the
         project's settings. The ``Site`` object is cached the first
         time it's retrieved from the database.
         """
-        from django.conf import settings
+        if settings is None:
+            from django.conf import settings
         try:
             sid = settings.SITE_ID
         except AttributeError:
@@ -83,6 +84,7 @@ class RequestSite(object):
     """
     def __init__(self, request):
         self.domain = self.name = request.get_host()
+        self.id = None
 
     def __str__(self):
         return self.domain
@@ -94,13 +96,13 @@ class RequestSite(object):
         raise NotImplementedError('RequestSite cannot be deleted.')
 
 
-def get_current_site(request):
+def get_current_site(request, settings=None):
     """
     Checks if contrib.sites is installed and returns either the current
     ``Site`` object or a ``RequestSite`` object based on the request.
     """
     if Site._meta.installed:
-        current_site = Site.objects.get_current()
+        current_site = Site.objects.get_current(settings=settings)
     else:
         current_site = RequestSite(request)
     return current_site

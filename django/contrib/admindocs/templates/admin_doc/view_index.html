@@ -15,14 +15,14 @@
 
 <h1>{% trans 'View documentation' %}</h1>
 
-{% regroup views|dictsort:"site_id" by site as views_by_site %}
+{% regroup views|dictsort:"site.id" by site as views_by_site %}
 
 <div id="content-related" class="sidebar">
 <div class="module">
 <h2>{% trans 'Jump to site' %}</h2>
 <ul>
     {% for site_views in views_by_site %}
-    <li><a href="#site{{ site_views.grouper.id }}">{{ site_views.grouper.name }}</a></li>
+    <li><a href="#site{{ site_views.grouper.id|default:forloop.counter }}">{{ site_views.grouper.name }}</a></li>
     {% endfor %}
 </ul>
 </div>
@@ -32,7 +32,7 @@
 
 {% for site_views in views_by_site %}
 <div class="module">
-<h2 id="site{{ site_views.grouper.id }}">{% blocktrans with site_views.grouper.name as name %}Views by URL on {{ name }}{% endblocktrans %}</h2>
+<h2 id="site{{ site_views.grouper.id|default:forloop.counter }}">{% blocktrans with site_views.grouper.name as name %}Views by URL on {{ name }}{% endblocktrans %}</h2>
 
 {% for view in site_views.list|dictsort:"url" %}
 {% ifchanged %}

@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.conf import settings
+from django.conf import settings, UserSettingsHolder
 from django.contrib.sites.models import Site, RequestSite, get_current_site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import HttpRequest
@@ -81,3 +81,12 @@ class SitesFrameworkTests(TestCase):
         self.assertRaises(ValidationError, site.full_clean)
         site.domain = "test\ntest"
         self.assertRaises(ValidationError, site.full_clean)
+
+    def test_get_current_site_custom_settings_module(self):
+        site2 = Site.objects.create(domain="example2.com", name="example2.com")
+        custom_settings = UserSettingsHolder(settings)
+        custom_settings.SITE_ID = site2.id
+
+        request = HttpRequest()
+        site = get_current_site(request, settings=custom_settings)
+        self.assertEqual(site, site2)

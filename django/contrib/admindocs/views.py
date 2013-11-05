@@ -13,7 +13,7 @@ from django.core.exceptions import ImproperlyConfigured, ViewDoesNotExist
 from django.http import Http404
 from django.core import urlresolvers
 from django.contrib.admindocs import utils
-from django.contrib.sites.models import Site
+from django.contrib.sites.models import Site, get_current_site
 from django.utils._os import upath
 from django.utils import six
 from django.utils.translation import ugettext as _
@@ -131,15 +131,10 @@ def view_index(request):
     for settings_mod in settings_modules:
         urlconf = import_module(settings_mod.ROOT_URLCONF)
         view_functions = extract_views_from_urlpatterns(urlconf.urlpatterns)
-        if Site._meta.installed:
-            site_obj = Site.objects.get(pk=settings_mod.SITE_ID)
-        else:
-            site_obj = GenericSite()
         for (func, regex) in view_functions:
             views.append({
                 'full_name': '%s.%s' % (func.__module__, getattr(func, '__name__', func.__class__.__name__)),
-                'site_id': settings_mod.SITE_ID,
-                'site': site_obj,
+                'site': get_current_site(request, settings=settings_mod),
                 'url': simplify_regex(regex),
             })
     return render_to_response('admin_doc/view_index.html', {
@@ -293,18 +288,13 @@ def template_detail(request, template):
     templates = []
     for site_settings_module in settings.ADMIN_FOR:
         settings_mod = import_module(site_settings_module)
-        if Site._meta.installed:
-            site_obj = Site.objects.get(pk=settings_mod.SITE_ID)
-        else:
-            site_obj = GenericSite()
         for dir in settings_mod.TEMPLATE_DIRS:
             template_file = os.path.join(dir, template)
             templates.append({
                 'file': template_file,
                 'exists': os.path.exists(template_file),
                 'contents': lambda: open(template_file).read() if os.path.exists(template_file) else '',
-                'site_id': settings_mod.SITE_ID,
-                'site': site_obj,
+                'site': get_current_site(request, settings=settings_mod),
                 'order': list(settings_mod.TEMPLATE_DIRS).index(dir),
             })
     return render_to_response('admin_doc/template_detail.html', {
