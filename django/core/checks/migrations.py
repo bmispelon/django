@@ -21,11 +21,15 @@ def check_migrations(app_configs=None, **kwargs):
         executor = MigrationExecutor(connections[DEFAULT_DB_ALIAS])
         plan = executor.migration_plan(executor.loader.graph.leaf_nodes())
     if plan:
+        unmigrated_apps = set(migration.app_label for migration, _ in plan)
+        msg = (
+            "You have unapplied migrations in app{0} {1}; "
+            "your app{0} may not work properly until they are applied."
+        ).format(
+            "s" if len(unmigrated_apps) > 1 else '',  # plural suffix
+            ", ".join(unmigrated_apps),
+        )
         errors.append(
-            Warning(
-                "You have unapplied migrations; "
-                "your app may not work properly until they are applied.",
-                hint="Run 'python manage.py migrate' to apply them.",
-            )
+            Warning(msg, hint="Run 'python manage.py migrate' to apply them.")
         )
     return errors

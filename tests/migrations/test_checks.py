@@ -18,7 +18,7 @@ class CheckMigrationTests(MigrationTestBase):
         """
         expected = [
             checks.Warning(
-                "You have unapplied migrations; "
+                "You have unapplied migrations in app migrations; "
                 "your app may not work properly until they are applied.",
                 hint="Run 'python manage.py migrate' to apply them.",
             )
