@@ -4,8 +4,10 @@ from xml.dom import minidom
 from django.contrib.sites.models import Site
 from django.contrib.syndication import views
 from django.core.exceptions import ImproperlyConfigured
+from django.templatetags.static import static
 from django.test import TestCase, override_settings
 from django.test.utils import requires_tz_support
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.feedgenerator import (
     Atom1Feed,
@@ -560,6 +562,26 @@ class SyndicationFeedTest(FeedTestCase):
                 )
                 doc = feed.writeString("utf-8")
                 self.assertIn(f'<{tag} href="https://feed.url.com" rel="self"/>', doc)
+
+    def test_xsl_stylesheet(self):
+        testdata = [
+            ("/test.xsl", "/test.xsl"),
+            ("https://example.com/test.xsl", "https://example.com/test.xsl"),
+            (reverse("syndication-xsl-stylesheet"), "/syndication/stylesheet.xsl"),
+            (static("stylesheet.xsl"), "/static/stylesheet.xsl"),
+        ]
+        for url, expected in testdata:
+            with self.subTest(stylesheet_url=url):
+                feed = Rss201rev2Feed(
+                    title="test",
+                    link="https://example.com",
+                    description="test",
+                    xsl_stylesheet_url=url,
+                )
+                doc = feed.writeString("utf-8")
+                self.assertIn(
+                    f'<?xml-stylesheet href="{expected}" type="text/xsl"?>', doc
+                )
 
     @requires_tz_support
     def test_feed_last_modified_time_naive_date(self):

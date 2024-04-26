@@ -596,6 +596,22 @@ This example illustrates all possible attributes and methods for a
 
         ttl = 600  # Hard-coded Time To Live.
 
+        # XSL STYLESHEET URL -- One of the following three is optional. The
+        # framework lookds for them in this order.
+
+        def xsl_stylesheet_url(self, obj):
+            """
+            Takes the object returned by get_object() and returns the feed's
+            stylesheet URL (only XSl is supported)
+            """
+
+        def xsl_stylesheet_url(self):
+            """
+            Returns the feed's stylesheet URL (only XSL is supported)
+            ""
+
+        xsl_stylesheet_url = "/link/to/stylesheet.xsl"  # Hard-coded URL
+
         # ITEMS -- One of the following three is required. The framework looks
         # for them in this order.
 
@@ -961,6 +977,7 @@ They share this interface:
     * ``feed_copyright``
     * ``feed_guid``
     * ``ttl``
+    * ``xsl_stylesheet_url``
 
     Any extra keyword arguments you pass to ``__init__`` will be stored in
     ``self.feed`` for use with `custom feed generators`_.
@@ -1095,3 +1112,44 @@ For example, you might start implementing an iTunes RSS feed generator like so::
 
 There's a lot more work to be done for a complete custom feed class, but the
 above example should demonstrate the basic idea.
+
+Feed stylesheets
+----------------
+
+You can add styling to your RSS feed using an `XSLT stylesheet`_ by passing
+an ``xsl_stylesheet_url`` argument to the feed's constructor.
+
+This can be a hardcoded URL::
+
+    from django.contrib.syndication.views import Feed
+
+    class FeedWithHardcodedStylesheet(Feed):
+        ... # author, etc.
+        xsl_stylesheet_url = "https://example.com/rss_stylesheet.xslt
+
+
+You can also use Django's static files system::
+
+    from django.contrib.syndication.views import Feed
+    from django.templatetags.static import static
+
+    class FeedWithStaticFileStylesheet(Feed):
+        ... # author, etc.
+        xsl_stylesheet_url = static("rss_styles.xslt")
+
+
+Another option is to have a view in your project that renders the XSLT document.
+You can then link it like so::
+
+    from django.contrib.syndication.views import Feed
+    from django.urls import reverse
+
+    class FeedWithStylesheetView(Feed):
+        ... # author, etc.
+        xsl_stylesheet_url = reverse("your-custom-view-name")
+
+.. _xslt stylesheet: https://developer.mozilla.org/en-US/docs/Web/XSLT/Transforming_XML_with_XSLT
+
+.. versionadded:: 5.1
+
+The ability to specify ``xsl_stylesheet_url`` was added.

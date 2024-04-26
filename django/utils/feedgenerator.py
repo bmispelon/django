@@ -75,6 +75,7 @@ class SyndicationFeed:
         feed_copyright=None,
         feed_guid=None,
         ttl=None,
+        xsl_stylesheet_url=None,
         **kwargs,
     ):
         def to_str(s):
@@ -95,6 +96,7 @@ class SyndicationFeed:
             "feed_copyright": to_str(feed_copyright),
             "id": feed_guid or link,
             "ttl": to_str(ttl),
+            "xsl_stylesheet_url": iri_to_uri(xsl_stylesheet_url),
             **kwargs,
         }
         self.items = []
@@ -166,6 +168,12 @@ class SyndicationFeed:
         """
         pass
 
+    def add_stylesheets(self, handler):
+        """
+        Add stylesheet(s) to the feed (XSLT).
+        """
+        pass
+
     def item_attributes(self, item):
         """
         Return extra attributes to place on each item (i.e. item/entry) element.
@@ -227,7 +235,10 @@ class RssFeed(SyndicationFeed):
 
     def write(self, outfile, encoding):
         handler = SimplerXMLGenerator(outfile, encoding, short_empty_elements=True)
-        handler.startDocument()
+        self.start_document(handler)
+        # any stylesheet must come after the start of the document but before any tag
+        # https://www.w3.org/Style/styling-XML.en.html
+        self.add_stylesheets(handler)
         handler.startElement("rss", self.rss_attributes())
         handler.startElement("channel", self.root_attributes())
         self.add_root_elements(handler)
@@ -246,6 +257,15 @@ class RssFeed(SyndicationFeed):
             handler.startElement("item", self.item_attributes(item))
             self.add_item_elements(handler, item)
             handler.endElement("item")
+
+    def start_document(self, handler):
+        handler.startDocument()
+
+    def add_stylesheets(self, handler):
+        if (url := self.feed["xsl_stylesheet_url"]) is not None:
+            handler.processingInstruction(
+                "xml-stylesheet", f'href="{url}" type="text/xsl"'
+            )
 
     def add_root_elements(self, handler):
         handler.addQuickElement("title", self.feed["title"])

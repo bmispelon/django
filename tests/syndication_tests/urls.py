@@ -40,4 +40,9 @@ urlpatterns = [
     path("syndication/rss2/multiple-enclosure/", feeds.TestMultipleEnclosureRSSFeed()),
     path("syndication/atom/single-enclosure/", feeds.TestSingleEnclosureAtomFeed()),
     path("syndication/atom/multiple-enclosure/", feeds.TestMultipleEnclosureAtomFeed()),
+    path(
+        "syndication/stylesheet.xsl",
+        lambda request: None,
+        name="syndication-xsl-stylesheet",
+    ),
 ]
